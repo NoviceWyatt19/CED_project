@@ -5,9 +5,10 @@
 
 import cv2
 import numpy as np
-from tensorflow import keras
-from keras.preprocessing.image import img_to_array
-from keras.models import load_model
+#from keras.preprocessing.image import img_to_array
+#from keras.models import load_model
+from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.models import load_model
 
 # Face detection XML load and trained model loading
 face_detection = cv2.CascadeClassifier('files/haarcascade_frontalface_default.xml')
