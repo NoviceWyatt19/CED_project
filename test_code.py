@@ -1,5 +1,11 @@
+
+# it works in virtrual environment
+# source path/to/venv/bin/activate      
+# when it want to done, input 'deactivate' in terminal
+
 import cv2
-import numpy as np   
+import numpy as np
+from tensorflow import keras
 from keras.preprocessing.image import img_to_array
 from keras.models import load_model
 
