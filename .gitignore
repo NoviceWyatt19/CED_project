@@ -1,4 +1,8 @@
 CHECKME.md
 second_check.md
+<<<<<<< HEAD
 refers/
+=======
+./refers
+>>>>>>> 7925e4bc4ebbb031953ec05d39e3d87549bd1d89
 path/to/venv/
