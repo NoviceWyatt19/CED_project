@@ -39,13 +39,13 @@ ap.add_argument("-p", "--shape-predictor", required=True, help="path to facial l
 ap.add_argument("-a", "--alarm", type=int, default=0, help="boolean used to indicate if TraffHat should be used")
 args = vars(ap.parse_args())
 
-board = pyfirmata.Arduino('/dev/ttyACM0')
-pin9=board.get_pin('d:10:o')
+#(replace)board = pyfirmata.Arduino('/dev/ttyACM0') # 보드경로 수정
+#(replace)pin9=board.get_pin('d:10:o') # 간접적으로 값을 통신하는 형태로 변형
 
 #pin7=board.get_pin('d:7:o')
 # check to see if we are using GPIO/TrafficHat as an alarm
 if args["alarm"] > 0:
-    from gpiozero import TrafficHat
+    # from gpiozero import TrafficHat 라즈베리의 핀을 제어하는 방식에서 변형
 
     th = TrafficHat()
     print("[INFO] using TrafficHat alarm...")
@@ -224,7 +224,7 @@ def process(image):
 
         for (x, y, w, h) in cars:
             print(w,h)
-            pin9.write(0)
+            #(replace) pin9.write(0) 차 선의 탐지를 못했을 때 쓰는건가?
             cv2.rectangle(temp, (x, y), (x + w, y + h), (0, 255, 255), 2)
 
         center = offset(left_fit_line[0] , 180 , right_fit_line[0])
@@ -241,7 +241,7 @@ def process(image):
             fontScale = 3.5
             cv2.putText(temp, 'Warning', location, font, fontScale, (0, 0, 255), thickness)
             color = [0, 0, 255]
-            pin9.write(1)
+            #(replace) pin9.write(1) 차 선 탐지 시 신호인가? 이 핀은 아두이노의 9번핀에 디지털신호를 주겠다는 의미인듯
 
 
     if left_fit_line != None:
