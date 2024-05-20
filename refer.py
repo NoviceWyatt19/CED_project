@@ -255,6 +255,7 @@ def process(image):
     return image_with_lines
 
 cascade_src = './sample/cars.xml'
+#(replace) webcam
 cap = cv2.VideoCapture('./smaple/change.avi') #여기도 캠을 실시간으로 연결해 받도록 바꾸기
 car_cascade = cv2.CascadeClassifier(cascade_src)
 
