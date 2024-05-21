@@ -95,7 +95,7 @@ while (cap.isOpened()):
     if (type(frame) == type(None)):
         break
 
-    frame = process(frame)
+    frame = refer_car.process(frame)
     cv2.imshow('frame', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
