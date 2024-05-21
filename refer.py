@@ -13,12 +13,12 @@ import cv2
 #import pyfirmata
 
 # ---------------------------------eyes---------------------------------------
-def euclidean_dist(ptA, ptB):
+def euclidean_dist(ptA, ptB): # 눈의 유클리드거리 측정
     # compute and return the euclidean distance between the two points
     return np.linalg.norm(ptA - ptB)
 
 
-def eye_aspect_ratio(eye):
+def eye_aspect_ratio(eye): # 유클리드 거리를 이용해 눈 측면 비 측정
     # compute the euclidean distances between the two sets of vertical eye landmarks (x, y)-coordinates
     A = euclidean_dist(eye[1], eye[5])
     B = euclidean_dist(eye[2], eye[4])
@@ -138,12 +138,12 @@ def line_intersection(line1, line2):
 
 def offset(left, mid, right):
 
-    LANEWIDTH = 3.7
-    a = mid - left
-    b = right - mid
+    LANEWIDTH = 3.7 # 한국 도로기준 적용한거? [m]
+    a = mid - left # 도로 가운데 기준 왼쪽
+    b = right - mid # 도로 가운데 기준 오른쪽
     width = right - left
 
-    if a >= b:  # driving right off
+    if a >= b:  # driving right off 
         offset = a / width * LANEWIDTH - LANEWIDTH / 2.0
     else:  # driving left off
         offset = LANEWIDTH / 2.0 - b / width * LANEWIDTH
