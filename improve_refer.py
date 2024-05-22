@@ -5,7 +5,7 @@ import numpy as np
 from imutils.video import VideoStream
 from imutils import face_utils
 import time
-# import serial
+import serial
 
 # 상수 정의
 EYE_AR_THRESH = 0.3  # 눈 깜빡임을 판단할 임계값
@@ -148,7 +148,7 @@ def process_lane_detection(image, car_cascade):
     return image_with_lines
 
 def main():
-    # ser = serial.Serial("/dev/ttyACM0",9600)
+    ser = serial.Serial("/dev/ttyACM0",9600)
     detector = cv2.CascadeClassifier(CASCADE_PATH)
     predictor = dlib.shape_predictor(PREDICTOR_PATH)
     car_cascade = cv2.CascadeClassifier('./cars.xml')
@@ -197,7 +197,7 @@ def main():
             if ear < EYE_AR_THRESH:
                 print("Eyes Closed!")
                 cv2.putText(frame, "DROWSINESS ALERT!", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 100), 2)
-                # ser.write("SLEEP_TRUE".encode()) # 졸음 신호 아두이노로 송신
+                ser.write("SLEEP_TRUE".encode()) # 졸음 신호 아두이노로 송신
 
             if frame_cnt % update_rate == 0:
                 ear_display = ear
@@ -209,8 +209,8 @@ def main():
             if ret:
                 lane_frame = process_lane_detection(lane_frame, car_cascade)
                 cv2.imshow("Lane Detection", lane_frame)
-                # if abs(process_lane_detection.center) > 1.5:
-                    # ser.write("SLEEP_TRUE".encode()) # 졸음 신호 아두이노로 송신
+                if abs(process_lane_detection.center) > 1.5:
+                    ser.write("SLEEP_TRUE".encode()) # 졸음 신호 아두이노로 송신
             else:
                 cap.release()
 
