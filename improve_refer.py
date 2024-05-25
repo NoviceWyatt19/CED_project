@@ -147,7 +147,8 @@ def process_lane_detection(image, car_cascade):
     return image_with_lines, center
 
 def main():
-    ser = serial.Serial("/dev/ttyACM0", 9600)
+    ser = serial.Serial('/dev/ttyACM0', 9600)
+    # ser = serial.Serial("/dev/ttyACM0", 9600)
     detector = cv2.CascadeClassifier(CASCADE_PATH)
     predictor = dlib.shape_predictor(PREDICTOR_PATH)
     car_cascade = cv2.CascadeClassifier('./cars.xml')
@@ -162,7 +163,7 @@ def main():
         print("Error opening video file.")
         return
 
-    vs = VideoStream(src=1).start()
+    vs = VideoStream(src=0).start()
     time.sleep(1.0)
 
     (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
@@ -210,7 +211,7 @@ def main():
                 lane_frame, center = process_lane_detection(lane_frame, car_cascade)
                 cv2.imshow("Lane Detection", lane_frame)
                 if abs(center) > 1.5:
-                    ser.write("SLEEP_TRUE".encode()) # 졸음 신호 아두이노로 송신
+                    ser.write("LANE_TRUE".encode()) # 졸음 신호 아두이노로 송신
             else:
                 cap.release()
 
