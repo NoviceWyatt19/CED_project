@@ -76,6 +76,7 @@ def main():
             # 눈을 감고 있는 시간 판단
             if sum(drowsy_queue) >= EYE_AR_CONSEC_FRAMES * 0.8:  # 5초 동안 80% 이상의 프레임에서 눈을 감고 있다면
                 drowsy = True
+                print("sleep")
             else:
                 drowsy = False
 
