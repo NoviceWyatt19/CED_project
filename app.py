@@ -207,7 +207,12 @@ def lane_detection():
             ret, lane_frame = cap.read()
             if ret:
                 lane_frame, center, lane_departure = process_lane_detection(lane_frame, car_cascade, frame_cnt, check_rate)
-                cv2.imshow("Lane Detection", lane_frame)
+                
+                if lane_frame is not None:
+                    # cv2.imshow("Lane Detection", lane_frame)
+                    pass
+                else:
+                    print("Received empty frame.")
 
                 # 큐에 차선 이탈 여부 추가
                 lane_departure_queue.append(lane_departure)
@@ -219,7 +224,12 @@ def lane_detection():
             else:
                 cap.release()
 
-        key = cv2.waitKey(1) & 0xFF
+        try:
+            key = cv2.waitKey(1) & 0xFF
+        except cv2.error as e:
+            print(f"Error waiting for key: {e}")
+            break
+
         if key == ord("q"):
             break
         frame_cnt += 1
@@ -306,8 +316,18 @@ def drowsiness_detection():
 
             cv2.putText(frame, "EAR: {:.3f}".format(ear_display), (300, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 3)
 
-        cv2.imshow("Frame", frame)
-        key = cv2.waitKey(33) & 0xFF  # 30 FPS를 위해 33ms 지연 시간 추가
+        try:
+            # cv2.imshow("Frame", frame)
+            pass
+        except cv2.error as e:
+            print(f"Error displaying frame: {e}")
+
+        try:
+            key = cv2.waitKey(33) & 0xFF  # 30 FPS를 위해 33ms 지연 시간 추가
+        except cv2.error as e:
+            print(f"Error waiting for key: {e}")
+            break
+
         if key == ord("q"):
             break
 
