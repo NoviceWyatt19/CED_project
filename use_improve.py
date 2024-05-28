@@ -1,4 +1,3 @@
-# source venv/bin/activate
 import cv2
 import dlib
 import imutils
@@ -6,7 +5,7 @@ import numpy as np
 from imutils.video import VideoStream
 from imutils import face_utils
 import time
-# import serial
+import serial
 
 # 상수 정의
 EYE_AR_THRESH = 0.3  # 눈 깜빡임을 판단할 임계값
@@ -14,9 +13,11 @@ EYE_AR_CONSEC_FRAMES = 16  # 연속된 프레임 수 임계값
 CASCADE_PATH = "haarcascade_frontalface_default.xml"
 PREDICTOR_PATH = "shape_predictor_68_face_landmarks.dat"
 
+# 두 점 사이의 유클리드 거리 계산 함수
 def euclidean_dist(ptA, ptB):
     return np.linalg.norm(ptA - ptB)
 
+# 눈의 측면 비율(EAR) 계산 함수
 def eye_aspect_ratio(eye):
     A = euclidean_dist(eye[1], eye[5])
     B = euclidean_dist(eye[2], eye[4])
@@ -143,15 +144,10 @@ def process_lane_detection(image, car_cascade):
         draw_fit_line(temp, right_fit_line, color)
 
     image_with_lines = cv2.addWeighted(temp, 0.8, image, 1, 0.0)
-    return image_with_lines
+    return image_with_lines, center
 
 def main():
-    # try:
-    #     ser = serial.Serial("/dev/ttyACM0", 9600)
-    # except serial.SerialException as e:
-    #     print(f"Error opening serial port: {e}")
-    #     return
-
+    ser = serial.Serial("/dev/ttyACM0", 9600)
     detector = cv2.CascadeClassifier(CASCADE_PATH)
     predictor = dlib.shape_predictor(PREDICTOR_PATH)
     car_cascade = cv2.CascadeClassifier('./cars.xml')
@@ -174,6 +170,7 @@ def main():
 
     frame_cnt = 0
     update_rate = 5
+    ear_display = 0
 
     while True:
         frame = vs.read()
@@ -200,7 +197,7 @@ def main():
             if ear < EYE_AR_THRESH:
                 print("Eyes Closed!")
                 cv2.putText(frame, "DROWSINESS ALERT!", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 100), 2)
-                # ser.write("SLEEP_TRUE".encode())  # 졸음 신호 아두이노로 송신
+                ser.write("SLEEP_TRUE".encode()) # 졸음 신호 아두이노로 송신
 
             if frame_cnt % update_rate == 0:
                 ear_display = ear
@@ -210,10 +207,10 @@ def main():
         if cap.isOpened():
             ret, lane_frame = cap.read()
             if ret:
-                lane_frame = process_lane_detection(lane_frame, car_cascade)
+                lane_frame, center = process_lane_detection(lane_frame, car_cascade)
                 cv2.imshow("Lane Detection", lane_frame)
-                # if abs(process_lane_detection.center) > 1.5:
-                    # ser.write("SLEEP_TRUE".encode())  # 졸음 신호 아두이노로 송신
+                if abs(center) > 1.5:
+                    ser.write("SLEEP_TRUE".encode()) # 졸음 신호 아두이노로 송신
             else:
                 cap.release()
 
@@ -221,6 +218,8 @@ def main():
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
             break
+
+        frame_cnt += 1
 
     cv2.destroyAllWindows()
     vs.stop()
