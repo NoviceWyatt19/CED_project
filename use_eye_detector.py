@@ -14,6 +14,11 @@ EYE_AR_CONSEC_FRAMES = 150  # 연속된 프레임 수 임계값 (30 FPS x 5초)
 CASCADE_PATH = "haarcascade_frontalface_default.xml"
 PREDICTOR_PATH = "shape_predictor_68_face_landmarks.dat"
 
+FRAME_RATE = 30
+DROWSINESS_CHECK_SECONDS = 8
+DROWSINESS_CHECK_FRAMES = DROWSINESS_CHECK_SECONDS * FRAME_RATE
+DROWSINESS_THRESHOLD = 0.7
+
 # 두 점 사이의 유클리드 거리 계산 함수
 def euclidean_dist(ptA, ptB):
     return np.linalg.norm(ptA - ptB)
@@ -41,9 +46,8 @@ def main():
     update_rate = 5
     ear_display = 0
 
-    # 졸음 여부 확정을 위한 queue 선언 및 초기화
-    drowsy_queue = deque(maxlen=EYE_AR_CONSEC_FRAMES)
-    drowsy = False
+    COUNTER = 0
+    QUEUE = deque(maxlen=DROWSINESS_CHECK_FRAMES)
 
     while True:
         frame = vs.read()
@@ -67,28 +71,25 @@ def main():
             cv2.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
             cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
 
+            QUEUE.append(ear < EYE_AR_THRESH)
+                         
             if ear < EYE_AR_THRESH:
-                drowsy_queue.append(1)
-                # ser.write("SLEEP_TRUE".encode()) # 졸음 신호 아두이노로 송신
+                COUNTER += 1
+            
             else:
-                drowsy_queue.append(0)
+                COUNTER = 0
 
-            # 눈을 감고 있는 시간 판단
-            if sum(drowsy_queue) >= EYE_AR_CONSEC_FRAMES * 0.8:  # 5초 동안 80% 이상의 프레임에서 눈을 감고 있다면
-                drowsy = True
-                print("sleep")
-            else:
-                drowsy = False
-
-            # 눈을 뜨고 있는 경우 큐 초기화
-            if not drowsy:
-                drowsy_queue.clear()
+            if len(QUEUE) == DROWSINESS_CHECK_FRAMES:
+                drowsiness_rate = sum(QUEUE) / len(QUEUE)
+                if drowsiness_rate >= DROWSINESS_THRESHOLD:
+                    print("Driver is drowsy!")
+                    QUEUE.clear()
 
             if frame_cnt % update_rate == 0:
                 ear_display = ear
 
             cv2.putText(frame, "EAR: {:.3f}".format(ear_display), (300, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 3)
-            cv2.putText(frame, "Drowsy: {}".format(drowsy), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 100), 2)
+            # cv2.putText(frame, "Drowsy: {}".format(drowsy), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 100), 2)
 
         cv2.imshow("Frame", frame)
         key = cv2.waitKey(33) & 0xFF  # 30 FPS를 위해 33ms 지연 시간 추가
