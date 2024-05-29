@@ -10,7 +10,7 @@ import serial
 
 # 상수 정의
 EYE_AR_THRESH = 0.3  # 눈 깜빡임을 판단할 임계값
-EYE_AR_CONSEC_FRAMES = 150  # 연속된 프레임 수 임계값 (30 FPS x 5초)
+EYE_AR_CONSEC_FRAMES = 80  # 연속된 프레임 수 임계값 (30 FPS x 5초)
 
 CASCADE_PATH = "haarcascade_frontalface_default.xml"
 PREDICTOR_PATH = "shape_predictor_68_face_landmarks.dat"
@@ -34,11 +34,11 @@ def eye_aspect_ratio(eye):
 
 def main():
     # ser = serial.Serial("/dev/ttyACM0", 9600)
-    ser = serial.Serial("/dev/cu.usbmodemF412FA6F49D82", 9600)
+    # ser = serial.Serial("/dev/cu.usbmodemF412FA6F49D82", 9600)
     detector = cv2.CascadeClassifier(CASCADE_PATH)
     predictor = dlib.shape_predictor(PREDICTOR_PATH)
 
-    vs = VideoStream(src=0).start()
+    vs = VideoStream(src=1).start()
     time.sleep(1.0)
 
     (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
@@ -85,7 +85,7 @@ def main():
                 drowsiness_rate = sum(QUEUE) / len(QUEUE)
                 if drowsiness_rate >= DROWSINESS_THRESHOLD:
                     print("Driver is drowsy!")
-                    ser.write("SLEEP_TRUE".encode())
+                    # ser.write("SLEEP_TRUE".encode())
                     drowsy = True
                     QUEUE.clear()
                 # else:
@@ -96,7 +96,7 @@ def main():
                 ear_display = ear
 
             cv2.putText(frame, "EAR: {:.3f}q".format(ear_display), (300, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 3)
-            cv2.putText(frame, "Drowsy: {}".format(drowsy), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 100), 2)
+            cv2.putText(frame, "Drowsy: {}".format(drowsy), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
         cv2.imshow("Frame", frame)
         key = cv2.waitKey(33) & 0xFF  # 30 FPS를 위해 33ms 지연 시간 추가
