@@ -6,6 +6,7 @@ from imutils.video import VideoStream
 from imutils import face_utils
 import time
 from collections import deque
+import serial
 
 # 상수 정의
 EYE_AR_THRESH = 0.3  # 눈 깜빡임을 판단할 임계값
@@ -15,7 +16,7 @@ CASCADE_PATH = "haarcascade_frontalface_default.xml"
 PREDICTOR_PATH = "shape_predictor_68_face_landmarks.dat"
 
 FRAME_RATE = 30
-DROWSINESS_CHECK_SECONDS = 8
+DROWSINESS_CHECK_SECONDS = 5
 DROWSINESS_CHECK_FRAMES = DROWSINESS_CHECK_SECONDS * FRAME_RATE
 DROWSINESS_THRESHOLD = 0.7
 
@@ -33,6 +34,7 @@ def eye_aspect_ratio(eye):
 
 def main():
     # ser = serial.Serial("/dev/ttyACM0", 9600)
+    ser = serial.Serial("/dev/cu.usbmodemF412FA6F49D82", 9600)
     detector = cv2.CascadeClassifier(CASCADE_PATH)
     predictor = dlib.shape_predictor(PREDICTOR_PATH)
 
@@ -48,6 +50,7 @@ def main():
 
     COUNTER = 0
     QUEUE = deque(maxlen=DROWSINESS_CHECK_FRAMES)
+    drowsy = False
 
     while True:
         frame = vs.read()
@@ -75,7 +78,6 @@ def main():
                          
             if ear < EYE_AR_THRESH:
                 COUNTER += 1
-            
             else:
                 COUNTER = 0
 
@@ -83,13 +85,18 @@ def main():
                 drowsiness_rate = sum(QUEUE) / len(QUEUE)
                 if drowsiness_rate >= DROWSINESS_THRESHOLD:
                     print("Driver is drowsy!")
+                    ser.write("SLEEP_TRUE".encode())
+                    drowsy = True
                     QUEUE.clear()
+                # else:
+                #     # ser.write("SLEEP_FALSE".encode())
+                #     drowsy = False
 
             if frame_cnt % update_rate == 0:
                 ear_display = ear
 
             cv2.putText(frame, "EAR: {:.3f}".format(ear_display), (300, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 3)
-            # cv2.putText(frame, "Drowsy: {}".format(drowsy), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 100), 2)
+            cv2.putText(frame, "Drowsy: {}".format(drowsy), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 100, 100), 2)
 
         cv2.imshow("Frame", frame)
         key = cv2.waitKey(33) & 0xFF  # 30 FPS를 위해 33ms 지연 시간 추가
