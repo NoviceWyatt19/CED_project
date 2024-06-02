@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
 from collections import deque
-import time
-import serial
+# import serial
+# import time
 
-# 관심 영역 설정
+# 관심 영역을 설정하는 함수
 def region_of_interest(img, vertices):
     mask = np.zeros_like(img)
     match_mask_color = 255  # 단일 채널이므로 흰색으로 설정
@@ -12,11 +12,11 @@ def region_of_interest(img, vertices):
     masked_image = cv2.bitwise_and(img, mask)
     return masked_image
 
-# 관심 영역 시각화
+# 관심 영역을 그림으로 표시하는 함수
 def draw_region_of_interest(img, vertices):
     cv2.polylines(img, vertices, isClosed=True, color=(0, 255, 0), thickness=2)
 
-# 주어진 선들을 바탕으로 하나의 직선을 계산
+# 주어진 선들을 바탕으로 하나의 직선을 계산하는 함수
 def get_fitline(img, lines):
     try:
         lines = np.squeeze(lines)
@@ -32,13 +32,13 @@ def get_fitline(img, lines):
             return result
     except:
         return None
-    
-# get_fitline의 result 시각화
+
+# 하나의 직선을 이미지에 그리는 함수
 def draw_fit_line(img, lines, color=[255, 0, 0], thickness=10):
     if lines is not None:
         cv2.line(img, (lines[0], lines[1]), (lines[2], lines[3]), color, thickness)
 
-# 두 선의 교차점 계산
+# 두 선의 교차점을 계산하는 함수
 def line_intersection(line1, line2):
     xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
     ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
@@ -55,9 +55,9 @@ def line_intersection(line1, line2):
     y = det(d, ydiff) / div
     return [x, y]
 
-# 차량이 차선의 중심으로부터 얼마나 벗어났는지 계산
+# 차량이 차선의 중심으로부터 얼마나 벗어났는지 계산하는 함수
 def offset(left, mid, right):
-    LANEWIDTH = 3.7
+    LANEWIDTH = 3.7  # 한국 도로 기준 [m]
     left_offset = mid - left  # 도로 가운데 기준 왼쪽
     right_offset = right - mid  # 도로 가운데 기준 오른쪽
     lane_width = right - left
@@ -68,12 +68,12 @@ def offset(left, mid, right):
         offset_value = LANEWIDTH / 2.0 - right_offset / lane_width * LANEWIDTH
     return offset_value
 
-# 차선 인식을 처리
+# 차선 인식을 처리하는 함수
 def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
     height, width = image.shape[0], image.shape[1]
 
     # 관심 영역 설정
-    top_offset_ratio = 0.5
+    top_offset_ratio = 0.5  # 높이를 더 늘림
 
     top_height = height * (1 - top_offset_ratio)
     bottom_height = height
@@ -90,7 +90,7 @@ def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
         bottom_right
     ]
 
-    # 이미지를 회색조로 변환 -> 처리 부담 감소
+    # 이미지를 회색조로 변환
     gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
     
@@ -98,16 +98,13 @@ def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
     sobel_x = cv2.Sobel(blurred_image, cv2.CV_64F, 1, 0, ksize=3)
     sobel_y = cv2.Sobel(blurred_image, cv2.CV_64F, 0, 1, ksize=3)
     sobel_combined = cv2.sqrt(cv2.addWeighted(sobel_x ** 2, 0.5, sobel_y ** 2, 0.5, 0))
-    
-    # Canny 엣지 검출기 적용
-    canny_image = cv2.Canny(np.uint8(sobel_combined), 40, 150)  # 상한값을 높임
-    
-    # 관심 영역으로 자르기
-    cropped_image = region_of_interest(canny_image, np.array([region_of_interest_vertices], np.int32))
 
-    # 관심 영역 시각화
+    # 관심 영역으로 자르기
+    cropped_image = region_of_interest(np.uint8(sobel_combined), np.array([region_of_interest_vertices], np.int32))
+
+    # 관심 영역을 이미지에 그림
     draw_region_of_interest(image, [np.array(region_of_interest_vertices, np.int32)])
-    
+
     # 허프 변환을 사용하여 선 감지
     lines = cv2.HoughLinesP(cropped_image,
                             rho=1,
@@ -188,16 +185,20 @@ def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
     image_with_lines = cv2.addWeighted(temp_image, 0.8, image, 1, 0.0)
     return image_with_lines, center, lane_departure
 
+# 메인 함수
 def main():
-    ser = serial.Serial("/dev/ttyACM0", 9600)
-    time.sleep(2)
+    # 아두이노와의 시리얼 통신 설정
+    # ser = serial.Serial("/dev/ttyACM0", 9600)
+    # time.sleep(2)  # 시리얼 통신 안정화를 위해 대기
 
+    # 자동차 검출을 위한 Haar Cascade 파일 로드
     car_cascade = cv2.CascadeClassifier('./cars.xml')
 
     if car_cascade.empty():
         print("Error loading cascade file for car detection.")
         return
     
+    # 비디오 파일 로드
     cap = cv2.VideoCapture('./change.avi')
 
     if not cap.isOpened():
@@ -221,7 +222,7 @@ def main():
                 # 큐의 70% 이상이 차선 이탈을 나타내면 경고 출력
                 if sum(lane_departure_queue) / len(lane_departure_queue) > 0.7:
                     print("Significant Lane Departure Detected")
-                    ser.write("LANE".encode())
+                    # ser.write(b'LANE_DEPARTURE')  # 아두이노에 LANE_DEPARTURE 문자열 전송
 
             else:
                 cap.release()
@@ -234,6 +235,7 @@ def main():
     cv2.destroyAllWindows()
     if cap.isOpened():
         cap.release()
+    # ser.close()  # 시리얼 통신 종료
 
 if __name__ == "__main__":
     main()
