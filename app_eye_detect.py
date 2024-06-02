@@ -58,7 +58,7 @@ time.sleep(2)  # 시리얼 통신 안정화를 위해 대기
 while True:
     # 프레임을 읽어
     frame = vs.read()
-    frame = imutils.resize(frame, width=450)
+    # frame = imutils.resize(frame, width=450)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # 얼굴을 감지
