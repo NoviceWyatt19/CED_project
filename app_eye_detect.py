@@ -1,10 +1,11 @@
 from imutils.video import VideoStream
 from imutils import face_utils
-import numpy as np
-import imutils
+import numpy as np # 유클리드 거리
+import imutils # opencv 보완
 import time
-import dlib
-import cv2
+import dlib # 안면인식
+import cv2 # opencv
+import serial # 아두이노 통신
 
 # 두 점 사이의 유클리드 거리를 계산하는 함수
 def euclidean_dist(ptA, ptB):
@@ -49,6 +50,10 @@ vs.stream.set(cv2.CAP_PROP_FPS, 30)
 fps = vs.stream.get(cv2.CAP_PROP_FPS)
 print(f"Frames per second set to: {fps}")
 
+# 아두이노와의 시리얼 통신을 설정
+ser = serial.Serial('/dev/ttyACM0', 9600)  # 아두이노가 연결된 포트와 보드레이트를 설정
+time.sleep(2)  # 시리얼 통신 안정화를 위해 대기
+
 # 주요 루프를 시작
 while True:
     # 프레임을 읽어
@@ -89,7 +94,8 @@ while True:
                 if not ALARM_ON:
                     ALARM_ON = True
                     print("drowsy")
-                    # 여기에 경고 액션을 추가
+                    ser.write("SLEEP_TRUE".encode())
+                    
                 cv2.putText(frame, "Drowsy", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         else:
             # 눈이 감겨 있지 않으면 카운터를 초기화하고 경고를 해제

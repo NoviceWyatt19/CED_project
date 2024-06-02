@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 from collections import deque
+import time
+import serial
 
 def region_of_interest(img, vertices):
     mask = np.zeros_like(img)
@@ -49,7 +51,7 @@ def line_intersection(line1, line2):
     return [x, y]
 
 def offset(left, mid, right):
-    LANEWIDTH = 3.7  # 한국 도로 기준 [m]
+    LANEWIDTH = 3.7
     left_offset = mid - left  # 도로 가운데 기준 왼쪽
     right_offset = right - mid  # 도로 가운데 기준 오른쪽
     lane_width = right - left
@@ -176,7 +178,9 @@ def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
     return image_with_lines, center, lane_departure
 
 def main():
-    # ser = serial.Serial("/dev/ttyACM0", 9600)
+    ser = serial.Serial("/dev/ttyACM0", 9600)
+    time.sleep(2)
+
     car_cascade = cv2.CascadeClassifier('./cars.xml')
 
     if car_cascade.empty():
@@ -206,6 +210,7 @@ def main():
                 # 큐의 70% 이상이 차선 이탈을 나타내면 경고 출력
                 if sum(lane_departure_queue) / len(lane_departure_queue) > 0.7:
                     print("Significant Lane Departure Detected")
+                    ser.write("LANE".encode())
 
             else:
                 cap.release()
