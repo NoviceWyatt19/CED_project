@@ -216,7 +216,7 @@ def main():
                 # 차선 이탈 여부 체크 및 Arduino로 신호 전송
                 if lane_departure:
                     print("Significant Lane Departure Detected")
-                    ser.write("LANE".encode())
+                    ser.write("SLEEP_TRUE".encode())
 
             else:
                 cap.release()
