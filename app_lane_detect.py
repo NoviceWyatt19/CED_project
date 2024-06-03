@@ -205,6 +205,7 @@ def main():
 
     frame_count = 0
     check_rate = 10  # 차선 이탈 여부를 체크하는 프레임 간격
+    sent_alert = False  # 상태를 추적하기 위해 플래그 추가
 
     while True:
         if cap.isOpened():
@@ -214,9 +215,12 @@ def main():
                 cv2.imshow("Lane Detection", lane_frame)
 
                 # 차선 이탈 여부 체크 및 Arduino로 신호 전송
-                if lane_departure:
+                if lane_departure and not sent_alert:
                     print("Significant Lane Departure Detected")
-                    ser.write("SLEEP_TRUE".encode())
+                    ser.write("SLEEP_TRUE\n".encode())
+                    sent_alert = True
+                elif not lane_departure:
+                    sent_alert = False
 
             else:
                 cap.release()
