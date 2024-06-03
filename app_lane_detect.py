@@ -1,8 +1,7 @@
 import cv2
 import numpy as np
-from collections import deque
 import time
-# import serial
+import serial
 
 # 관심 영역 설정
 def region_of_interest(img, vertices):
@@ -119,7 +118,7 @@ def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
                             )
     
     if lines is None:
-        return image, 0
+        return image, 0, False
 
     line_arr = np.squeeze(lines)
     slope_degrees = (np.arctan2(line_arr[:, 1] - line_arr[:, 3], line_arr[:, 0] - line_arr[:, 2]) * 180) / np.pi
@@ -189,8 +188,8 @@ def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
     return image_with_lines, center, lane_departure
 
 def main():
-    # ser = serial.Serial("/dev/ttyACM0", 9600)
-    # time.sleep(2)
+    ser = serial.Serial("/dev/ttyACM0", 9600)
+    time.sleep(2)
 
     car_cascade = cv2.CascadeClassifier('./cars.xml')
 
@@ -206,7 +205,6 @@ def main():
 
     frame_count = 0
     check_rate = 10  # 차선 이탈 여부를 체크하는 프레임 간격
-    lane_departure_queue = deque(maxlen=50)  # 5초 동안의 데이터를 저장 (가정: 10FPS 비디오)
 
     while True:
         if cap.isOpened():
@@ -215,13 +213,10 @@ def main():
                 lane_frame, center, lane_departure = process_lane_detection(lane_frame, car_cascade, frame_count, check_rate)
                 cv2.imshow("Lane Detection", lane_frame)
 
-                # 큐에 차선 이탈 여부 추가
-                lane_departure_queue.append(lane_departure)
-
-                # 큐의 70% 이상이 차선 이탈을 나타내면 경고 출력
-                if sum(lane_departure_queue) / len(lane_departure_queue) > 0.7:
+                # 차선 이탈 여부 체크 및 Arduino로 신호 전송
+                if lane_departure:
                     print("Significant Lane Departure Detected")
-                    # ser.write("LANE".encode())
+                    ser.write("LANE".encode())
 
             else:
                 cap.release()
@@ -234,6 +229,7 @@ def main():
     cv2.destroyAllWindows()
     if cap.isOpened():
         cap.release()
+    ser.close()
 
 if __name__ == "__main__":
     main()
