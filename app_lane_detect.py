@@ -3,6 +3,9 @@ import numpy as np
 import time
 import serial
 
+# 차선 이탈 여부를 추적하는 전역 변수
+lane_departure_detected = False
+
 # 관심 영역 설정
 def region_of_interest(img, vertices):
     mask = np.zeros_like(img)
@@ -69,6 +72,7 @@ def offset(left, mid, right):
 
 # 차선 인식을 처리
 def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
+    global lane_departure_detected
     height, width = image.shape[0], image.shape[1]
 
     # 관심 영역 설정
@@ -164,6 +168,9 @@ def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
             fontScale = 3.5
             cv2.putText(temp_image, 'Warning', location, font, fontScale, (0, 0, 255), thickness)
             line_color = [0, 0, 255]
+            lane_departure_detected = True  # 차선 이탈 감지
+        else:
+            lane_departure_detected = False
 
     if left_fit_line is not None:
         draw_fit_line(temp_image, left_fit_line, line_color)
@@ -171,24 +178,12 @@ def process_lane_detection(image, car_cascade, frame_count, check_rate=10):
     if right_fit_line is not None:
         draw_fit_line(temp_image, right_fit_line, line_color)
 
-    # 차선 중심 계산 및 프레임 카운트에 따른 차선 이탈 여부 체크
-    lane_departure = False
-    if left_fit_line is not None and right_fit_line is not None:
-        left_x1, left_y1, left_x2, left_y2 = left_fit_line
-        right_x1, right_y1, right_x2, right_y2 = right_fit_line
-        lane_center = (left_x1 + right_x1) // 2
-        frame_center = width // 2
-
-        # 차선 이탈 여부 체크
-        offset_value = lane_center - frame_center
-        if abs(offset_value) > 50:  # 임계값 조정 가능
-            lane_departure = True
-
     image_with_lines = cv2.addWeighted(temp_image, 0.8, image, 1, 0.0)
-    return image_with_lines, center, lane_departure
+    return image_with_lines, center, lane_departure_detected
 
 def main():
-    ser = serial.Serial("/dev/ttyACM0", 9600)
+    global lane_departure_detected
+    ser = serial.Serial("/dev/cu.usbmodemF412FA6F49D82", 9600)
     time.sleep(2)
 
     car_cascade = cv2.CascadeClassifier('./cars.xml')
@@ -215,11 +210,11 @@ def main():
                 cv2.imshow("Lane Detection", lane_frame)
 
                 # 차선 이탈 여부 체크 및 Arduino로 신호 전송
-                if lane_departure and not sent_alert:
-                    print("Significant Lane Departure Detected")
+                if lane_departure_detected and not sent_alert:
+                    print("Lane Departure Detected: Send signal to arduino")
                     ser.write("SLEEP_TRUE\n".encode())
                     sent_alert = True
-                elif not lane_departure:
+                elif not lane_departure_detected:
                     sent_alert = False
 
             else:

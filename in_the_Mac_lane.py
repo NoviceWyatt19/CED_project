@@ -225,7 +225,6 @@ def main():
     cv2.destroyAllWindows()
     if cap.isOpened():
         cap.release()
-    ser.close()
 
 if __name__ == "__main__":
     main()

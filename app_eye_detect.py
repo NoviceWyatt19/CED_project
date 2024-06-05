@@ -51,7 +51,7 @@ fps = vs.stream.get(cv2.CAP_PROP_FPS)
 print(f"Frames per second set to: {fps}")
 
 # 아두이노와의 시리얼 통신을 설정
-ser = serial.Serial('/dev/ttyACM0', 9600)  # 아두이노가 연결된 포트와 보드레이트를 설정
+ser = serial.Serial('/dev/cu.usbmodemF412FA6F49D82', 9600)  # 아두이노가 연결된 포트와 보드레이트를 설정
 time.sleep(2)  # 시리얼 통신 안정화를 위해 대기
 
 # 주요 루프를 시작
@@ -94,7 +94,7 @@ while True:
                 if not ALARM_ON:
                     ALARM_ON = True
                     print("drowsy")
-                    ser.write("SLEEP_TRUE".encode())
+                    ser.write("SLEEP_TRUE\n".encode())
                     
                 cv2.putText(frame, "Drowsy", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         else:
