@@ -51,7 +51,7 @@ void Alcol_Sensor() {
   Serial.print("alcol_value: ");
   Serial.println(alcol_val);   // MQ-3 센서 출력값을 시리얼 모니터로 출력
   
-  if(alcol_val >= 700) {  // 센서 값이 700 이상이면
+  if(alcol_val >= 600) {  // 센서 값이 700 이상이면
     Serial.println("Processing Alcol_Sensor (High)");
     Sound_Do5(0.2);
     delay(100);
@@ -73,7 +73,7 @@ void CO2_Sensor() {
   Serial.print("co2_value: ");
   Serial.println(co2ppm);
 
-  if(co2ppm > 3500) {
+  if(co2ppm > 2000) {
     Serial.println("Processing CO2_Sensor (High)");
     Sound_Mi5(0.2);
     delay(100);
@@ -83,8 +83,9 @@ void CO2_Sensor() {
     delay(100);
     Sound_Pa5(0.2);
     delay(100);
-  } else if(co2ppm > 1000 && co2ppm <= 3500) {
+  } else if(co2ppm > 1000 && co2ppm <= 2000) {
     Serial.println("Processing CO2_Sensor (Medium)");
+    Sound_Pa5(0.2);
     delay(100);
   } else if(co2ppm <= 1000) {
     Serial.println("Processing CO2_Sensor (Low)");
