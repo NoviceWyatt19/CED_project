@@ -8,7 +8,9 @@ ced_venv/
 lane_1.avi
 lane_2.mp4
 refer_*
-use_*
+use_eye*
+use_lane*
+use_improve*
 slove_*
 test_webcam.py
 improve_*
