@@ -65,7 +65,7 @@ def main():
     (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
     (rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
 
-    vs = open_webcam(1)
+    vs = open_webcam('/dev/ttyvideo0') # /dev/ttyvideo0
     vs.stream.set(cv2.CAP_PROP_FPS, FPS)
     fps = vs.stream.get(cv2.CAP_PROP_FPS)
     print(f"Frames per second set to: {fps}")
