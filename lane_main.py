@@ -34,7 +34,7 @@ def send_signal_to_arduino(ser):
 def main():
     global lane_departure_detected, stop_thread
     try:
-        ser = open_serial("/dev/cu.usbmodemF412FA6F49D82", 9600)
+        ser = open_serial("/dev/ttyACM0", 9600)
     except IOError as e:
         print(e)
         return
