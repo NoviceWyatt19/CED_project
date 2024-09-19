@@ -73,7 +73,7 @@ void CO2_Sensor() {
   Serial.print("co2_value: ");
   Serial.println(co2ppm);
 
-  if(co2ppm > 2000) {
+  if(co2ppm > 920) {
     Serial.println("Processing CO2_Sensor (High)");
     Sound_Mi5(0.2);
     delay(100);
@@ -83,11 +83,7 @@ void CO2_Sensor() {
     delay(100);
     Sound_Pa5(0.2);
     delay(100);
-  } else if(co2ppm > 1000 && co2ppm <= 2000) {
-    Serial.println("Processing CO2_Sensor (Medium)");
-    Sound_Pa5(0.2);
-    delay(100);
-  } else if(co2ppm <= 1000) {
+  } else{
     Serial.println("Processing CO2_Sensor (Low)");
     delay(1000);
   }
