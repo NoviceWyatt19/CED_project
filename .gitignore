@@ -15,6 +15,7 @@ slove_*
 test_webcam.py
 improve_*
 venv
+venv_240920
 
 __pycache__/
 *.pyc
